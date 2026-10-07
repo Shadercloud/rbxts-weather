@@ -1,6 +1,7 @@
 import { DEFAULT_BLEND, ROOT_NAME, ZONES_NAME } from "./config";
 import { PARAM_KEYS, PRESETS, WeatherParams, copyParams, lerpParams } from "./Params";
 import { RegionShape, regionWeight } from "./Region";
+import { DEFAULT_SEASON, SeasonState, SeasonTransition, readSeason, sampleSeason } from "./Season";
 
 // A weather blending from one look to another, timed on the server clock so every client agrees.
 export interface Transition {
@@ -128,6 +129,8 @@ export function getZonesFolder(root: Instance): Folder {
 
 interface ZoneData {
 	transition?: Transition;
+	/** Only on the roots. */
+	season?: SeasonTransition;
 	shape?: RegionShape;
 	blend: number;
 	priority: number;
@@ -158,6 +161,7 @@ function read(instance: Instance): ZoneData {
 		const priority = instance.GetAttribute("priority");
 		entry.data = {
 			transition: readTransition(instance),
+			season: readSeason(instance),
 			shape: readShape(instance),
 			blend: typeIs(blend, "number") ? blend : DEFAULT_BLEND,
 			priority: typeIs(priority, "number") ? priority : 0,
@@ -185,6 +189,15 @@ export function evaluateGlobal(now: number): WeatherParams {
 	const serverRoot = getServerRoot();
 	const server = serverRoot && read(serverRoot).transition;
 	return server ? sampleTransition(server, now) : copyParams(PRESETS.clear);
+}
+
+// The season: this side's own if it has set one, else the server's, else summer.
+export function evaluateSeason(now: number): SeasonState {
+	const own = read(getOwnRoot()).season;
+	if (own) return sampleSeason(own, now);
+	const serverRoot = getServerRoot();
+	const server = serverRoot && read(serverRoot).season;
+	return server ? sampleSeason(server, now) : { ...DEFAULT_SEASON };
 }
 
 // The weather at a point: the global weather with every zone around the point blended over it, lowest

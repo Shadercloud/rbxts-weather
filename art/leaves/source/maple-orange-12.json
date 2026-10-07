@@ -1,0 +1,12 @@
+{
+	"model": "qwen21",
+	"prompt": "A real autumn maple leaf, five pointed lobes, bright orange with yellow near the veins. Studio macro photograph, perfectly top-down view, a single whole leaf lying flat, centred, filling about 80 percent of the frame, the whole leaf including its stem fully inside the frame, sharp focus, crisp detailed veins, natural colour variation and a few small blemishes, on a pure solid white background (#FFFFFF), evenly lit, no shadow, no other objects, no text.",
+	"name": "maple-orange",
+	"seed": 12,
+	"steps": 25,
+	"guidance": 1,
+	"negative": "shadow, multiple leaves, text, watermark, background texture, table, hand",
+	"width": 1024,
+	"height": 1024,
+	"refs": []
+}

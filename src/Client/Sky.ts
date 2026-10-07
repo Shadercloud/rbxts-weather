@@ -1,4 +1,13 @@
-import { DARK_BRIGHTNESS, DARK_CONTRAST, DARK_SATURATION, FLASH_BRIGHTNESS, FOG_DENSITY, FOG_HAZE } from "../config";
+import {
+	CLOUD_LAYER_FOG_DENSITY,
+	CLOUD_LAYER_FOG_HAZE,
+	DARK_BRIGHTNESS,
+	DARK_CONTRAST,
+	DARK_SATURATION,
+	FLASH_BRIGHTNESS,
+	FOG_DENSITY,
+	FOG_HAZE,
+} from "../config";
 import { WeatherParams } from "../Params";
 
 interface AtmosphereBase {
@@ -67,13 +76,17 @@ export class Sky {
 		this.created.push(this.grade);
 	}
 
-	update(params: WeatherParams, flash: number) {
+	// `cloudLayer` is how strongly the storm cloud layer shows, 0-1: the fog is thinned under it, or it hides
+	// the layer (dense Atmosphere fades anything a couple of hundred studs off into the sky).
+	update(params: WeatherParams, flash: number, cloudLayer = 0) {
 		const atmosphere = this.atmosphere;
 		const base = this.atmosphereBase;
 		if (atmosphere && base) {
 			const fog = params.fog;
-			atmosphere.Density = base.Density + (FOG_DENSITY - base.Density) * fog;
-			atmosphere.Haze = base.Haze + (FOG_HAZE - base.Haze) * fog;
+			const density = base.Density + (FOG_DENSITY - base.Density) * fog;
+			const haze = base.Haze + (FOG_HAZE - base.Haze) * fog;
+			atmosphere.Density = density + (math.min(density, CLOUD_LAYER_FOG_DENSITY) - density) * cloudLayer;
+			atmosphere.Haze = haze + (math.min(haze, CLOUD_LAYER_FOG_HAZE) - haze) * cloudLayer;
 			atmosphere.Glare = base.Glare * (1 - math.max(params.darkness, params.clouds * 0.5));
 			atmosphere.Color = base.Color.Lerp(params.fogColor, fog);
 			atmosphere.Decay = base.Decay.Lerp(params.fogColor.Lerp(new Color3(), 0.3), fog);

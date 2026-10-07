@@ -5,6 +5,7 @@ exports.WeatherControl = TS.import(script, script, "Control").WeatherControl
 local _Params = TS.import(script, script, "Params")
 exports.PRESETS = _Params.PRESETS
 exports.lerpParams = _Params.lerpParams
+exports.SEASONS = TS.import(script, script, "Season").SEASONS
 local _Weather = TS.import(script, script, "Weather")
 exports.Weather = _Weather.Weather
 exports.WeatherApi = _Weather.WeatherApi

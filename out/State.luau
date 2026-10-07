@@ -10,6 +10,10 @@ local PRESETS = _Params.PRESETS
 local copyParams = _Params.copyParams
 local lerpParams = _Params.lerpParams
 local regionWeight = TS.import(script, script.Parent, "Region").regionWeight
+local _Season = TS.import(script, script.Parent, "Season")
+local DEFAULT_SEASON = _Season.DEFAULT_SEASON
+local readSeason = _Season.readSeason
+local sampleSeason = _Season.sampleSeason
 -- A weather blending from one look to another, timed on the server clock so every client agrees.
 local function clock()
 	return game:GetService("Workspace"):GetServerTimeNow()
@@ -172,6 +176,7 @@ local function read(instance)
 		local priority = instance:GetAttribute("priority")
 		entry.data = {
 			transition = readTransition(instance),
+			season = readSeason(instance),
 			shape = readShape(instance),
 			blend = if type(blend) == "number" then blend else DEFAULT_BLEND,
 			priority = if type(priority) == "number" then priority else 0,
@@ -198,6 +203,24 @@ local function evaluateGlobal(now)
 	local serverRoot = getServerRoot()
 	local server = serverRoot and read(serverRoot).transition
 	return if server then sampleTransition(server, now) else copyParams(PRESETS.clear)
+end
+-- The season: this side's own if it has set one, else the server's, else summer.
+local function evaluateSeason(now)
+	local own = read(getOwnRoot()).season
+	if own then
+		return sampleSeason(own, now)
+	end
+	local serverRoot = getServerRoot()
+	local server = serverRoot and read(serverRoot).season
+	local _result
+	if server then
+		_result = sampleSeason(server, now)
+	else
+		local _object = table.clone(DEFAULT_SEASON)
+		setmetatable(_object, nil)
+		_result = _object
+	end
+	return _result
 end
 -- The weather at a point: the global weather with every zone around the point blended over it, lowest
 -- priority first. On a client, both the server's zones and its own count.
@@ -245,5 +268,6 @@ return {
 	getZonesFolder = getZonesFolder,
 	sweepCache = sweepCache,
 	evaluateGlobal = evaluateGlobal,
+	evaluateSeason = evaluateSeason,
 	evaluateAt = evaluateAt,
 }

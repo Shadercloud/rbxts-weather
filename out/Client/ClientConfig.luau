@@ -1,6 +1,7 @@
 -- Compiled with roblox-ts v3.0.0
 local TS = _G[script]
 local TOUCH_PARTICLE_SCALE = TS.import(script, script.Parent.Parent, "config").TOUCH_PARTICLE_SCALE
+--* A leaf picture: an image with a transparent background, the leaf filling it. 
 -- How this client draws the weather. Set with `Weather.configure`; everything is optional there.
 -- Textures that ship with every Roblox client, so the package needs no uploads.
 local SQUARE = "rbxasset://textures/particles/SquareParticle.png"
@@ -13,6 +14,39 @@ local DEFAULT_SOUNDS = {
 	wind = "rbxassetid://81404060588532",
 	thunder = { "rbxassetid://9120016241", "rbxassetid://9120021539", "rbxassetid://9120018172", "rbxassetid://9120018216" },
 }
+-- The package's leaf pictures (art/leaves, made from ComfyUI photos by tools/leaf_textures.py), uploaded as
+-- images by ShaderCloud. Sizes are relative: maple largest, birch smallest.
+local DEFAULT_LEAVES = { {
+	texture = "rbxassetid://109288538134452",
+	size = 1.15,
+}, {
+	texture = "rbxassetid://80805595237760",
+	size = 1.15,
+}, {
+	texture = "rbxassetid://117335474473728",
+	size = 1.15,
+}, {
+	texture = "rbxassetid://73078920043599",
+	size = 1,
+}, {
+	texture = "rbxassetid://80376924963207",
+	size = 1,
+}, {
+	texture = "rbxassetid://76191320469395",
+	size = 0.9,
+}, {
+	texture = "rbxassetid://92750542325621",
+	size = 0.9,
+}, {
+	texture = "rbxassetid://128795998453848",
+	size = 0.8,
+}, {
+	texture = "rbxassetid://90979127004666",
+	size = 0.7,
+} }
+-- Curved cards the pictures are drawn on (art/leaves/meshes, made by tools/leaf_meshes.py), uploaded as models
+-- by ShaderCloud; these are the mesh ids inside them.
+local DEFAULT_LEAF_MESHES = { "rbxassetid://124967419192590", "rbxassetid://97859570440573", "rbxassetid://138236474548144" }
 local function defaultParticles()
 	local input = game:GetService("UserInputService")
 	return if input.TouchEnabled and not input.KeyboardEnabled then TOUCH_PARTICLE_SCALE else 1
@@ -24,6 +58,7 @@ local function defaultConfig()
 		particles = defaultParticles(),
 		shelter = true,
 		screenDrops = false,
+		stormClouds = true,
 		focus = nil,
 		ignore = {},
 	}
@@ -42,6 +77,10 @@ local function defaultConfig()
 		snowColor = Color3.fromRGB(255, 255, 255),
 		snowSize = 0.22,
 		splashColor = Color3.fromRGB(205, 215, 228),
+		cloudTexture = "rbxassetid://131975568554853",
+		leaves = DEFAULT_LEAVES,
+		leafSize = 1,
+		leafMeshes = DEFAULT_LEAF_MESHES,
 	}
 	return _object
 end

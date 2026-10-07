@@ -1,5 +1,6 @@
 import { WeatherParams } from "./Params";
 import { RegionShape } from "./Region";
+import { SeasonState } from "./Season";
 export interface Transition {
     from: WeatherParams;
     to: WeatherParams;
@@ -16,4 +17,5 @@ export declare function getOwnRoot(): Folder;
 export declare function getZonesFolder(root: Instance): Folder;
 export declare function sweepCache(): void;
 export declare function evaluateGlobal(now: number): WeatherParams;
+export declare function evaluateSeason(now: number): SeasonState;
 export declare function evaluateAt(position: Vector3, now: number): WeatherParams;

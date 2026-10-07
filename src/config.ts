@@ -37,6 +37,9 @@ export const SNOW_HEIGHT = 22;
 
 // Fall speeds, studs per second.
 export const RAIN_SPEED = 90;
+// Rain is blown sideways at this many times the wind's speed. Taken literally, a storm wind (23 studs/s)
+// against rain this fast tilts it only 14 degrees, which reads as straight down; 2.5 gives about 33.
+export const RAIN_WIND = 2.5;
 export const SNOW_SPEED = 9;
 
 // Particles per second per column at intensity 1 (an emitter takes at most 400). Snow lives about ten times
@@ -95,6 +98,65 @@ export const SCREEN_DROP_TRANSPARENCY = 0.35;
 export const SCREEN_DROP_BLUR_RADIUS = 0.8;
 // Share of average-sized drops that run down the screen (big ones more often, small ones less).
 export const SCREEN_DROP_SLIDE_CHANCE = 0.3;
+
+// Autumn leaves ------------------------------------------------------------------------------------------
+// Leaves fall from high up all around the player and drift down on the air: this many start per second at
+// season intensity 1 (half of it on a still day, twice it in a gale), at most this many at once.
+// A wind of LEAF_GALE studs/s counts as a gale: leaves then start upwind and low (see Leaves.spawnPoint).
+export const LEAF_RATE = 4;
+export const LEAF_MAX = 80;
+export const LEAF_GALE = 20;
+// They start this far from the camera (studs, anywhere around but out of view), this high above the ground,
+// and are dropped once they drift further than LEAF_SPAWN_MAX x 1.5.
+export const LEAF_SPAWN_MIN = 15;
+export const LEAF_SPAWN_MAX = 80;
+export const LEAF_HEIGHT_MIN = 20;
+export const LEAF_HEIGHT_MAX = 35;
+// In front of the camera a start is raised (up to this high) until it is above the top of the frame.
+export const LEAF_HEIGHT_CEILING = 90;
+// Share of the wind's speed a leaf travels at, and how fast leaves sink (studs/s, each one between these).
+export const LEAF_WIND_FOLLOW = 1;
+export const LEAF_SINK_MIN = 0.9;
+export const LEAF_SINK_MAX = 1.8;
+// Eddies in the air the leaves ride, so they swirl a little rather than moving in lockstep: as strong as
+// this share of the wind (at least LEAF_EDDY_MIN studs/s, which is all that moves them on a still day), this
+// many studs across, changing at this rate. Kept well under the wind, or a storm scatters leaves every way
+// instead of driving them sideways.
+export const LEAF_EDDY_SHARE = 0.4;
+export const LEAF_EDDY_MIN = 3;
+export const LEAF_EDDY_SCALE = 30;
+export const LEAF_EDDY_SPEED = 0.08;
+// Gusts: the wind the leaves feel swings this far either side of its strength (0.35 = 65% to 135%), at this
+// rate. One rhythm for all leaves.
+export const LEAF_GUST = 0.35;
+export const LEAF_GUST_SPEED = 0.4;
+// Seconds a leaf lies on the ground before fading, the fade, and the longest one stays in the air.
+export const LEAF_REST = 3;
+export const LEAF_FADE = 1;
+export const LEAF_LIFE = 80;
+
+// Storm cloud layer ---------------------------------------------------------------------------------------
+// Sheets of storm-cloud texture overhead (Client/CloudLayer). Each layer: studs above the camera, studs per
+// texture tile (must divide CLOUD_LAYER_PART / 2), opacity at full strength, and how fast it drifts relative
+// to the other (the lower one faster, for depth).
+export const CLOUD_LAYERS: ReadonlyArray<{ height: number; tile: number; opacity: number; drift: number }> = [
+	{ height: 130, tile: 1024, opacity: 1, drift: 1 },
+	{ height: 95, tile: 512, opacity: 0.55, drift: 1.6 },
+];
+// Side of each of a layer's 3 x 3 parts (the largest a part may be).
+export const CLOUD_LAYER_PART = 2048;
+// The layers show once the weather's clouds pass CLOUD_LAYER_CLOUDS_FROM, and are full at clouds 1 with
+// darkness CLOUD_LAYER_DARKNESS_FULL: overcast gives a faint layer, rain a solid one, a storm the full sky.
+export const CLOUD_LAYER_CLOUDS_FROM = 0.7;
+export const CLOUD_LAYER_DARKNESS_FULL = 0.5;
+// Studs the texture drifts per stud of wind.
+export const CLOUD_LAYER_DRIFT = 0.6;
+// Atmosphere density and haze are held at most at these under a full cloud layer: denser fog fades the layer
+// into the sky. Measured: at the storm's 0.43 it vanished; at 0.28 with the layers 95-130 studs up it shows.
+export const CLOUD_LAYER_FOG_DENSITY = 0.28;
+export const CLOUD_LAYER_FOG_HAZE = 0.8;
+// The light grey the layer's tint is pulled towards from the weather's cloud colour.
+export const CLOUD_LAYER_TINT = Color3.fromRGB(190, 196, 210);
 
 // Sky -----------------------------------------------------------------------------------------------------
 

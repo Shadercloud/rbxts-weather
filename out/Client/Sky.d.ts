@@ -7,6 +7,6 @@ export declare class Sky {
     private readonly created;
     private readonly grade;
     constructor();
-    update(params: WeatherParams, flash: number): void;
+    update(params: WeatherParams, flash: number, cloudLayer?: number): void;
     stop(): void;
 }

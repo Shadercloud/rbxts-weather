@@ -1,0 +1,12 @@
+{
+	"model": "qwen21",
+	"prompt": "Photograph looking straight up into a dark stormy sky: a dense ceiling of heavy rolling storm clouds seen from directly below, dramatic dark grey cloud undersides with lumpy billowing texture and a few thinner lighter patches, evenly filling the whole frame edge to edge, no horizon, no ground, no sun, no birds, no trees, no buildings, no lightning, no text. Monochrome grey tones, high detail.",
+	"name": "storm-clouds",
+	"seed": 32,
+	"steps": 25,
+	"guidance": 1,
+	"negative": "horizon, ground, sun, blue sky, trees, buildings, birds, text, watermark, lightning",
+	"width": 1024,
+	"height": 1024,
+	"refs": []
+}

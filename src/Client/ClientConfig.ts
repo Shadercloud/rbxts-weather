@@ -15,6 +15,24 @@ export interface WeatherAppearance {
 	snowColor: Color3;
 	snowSize: number;
 	splashColor: Color3;
+	/** The storm cloud layer's texture: tileable, seen from below. */
+	cloudTexture: string;
+	/** Autumn leaves: each leaf shows one of these pictures, picked at random. */
+	leaves: LeafImage[];
+	/** Size of a leaf in studs, before each picture's own `size`. */
+	leafSize: number;
+	/** Mesh ids of curved leaf cards (one stud across, UV covering the face); each leaf takes one at random. */
+	leafMeshes: string[];
+}
+
+/** A leaf picture: an image with a transparent background, the leaf filling it. */
+export interface LeafImage {
+	/** Image id ("rbxassetid://..."). */
+	texture: string;
+	/** Size relative to the others: a maple leaf is larger than a birch leaf. Default 1. */
+	size?: number;
+	/** Multiplies the picture's colours, for more shades from one picture. Default white (unchanged). */
+	tint?: Color3;
 }
 
 export interface WeatherSounds {
@@ -39,6 +57,8 @@ export interface WeatherClientConfig {
 	shelter: boolean;
 	/** Water drops on the screen while the camera is out in the rain. Default off. */
 	screenDrops: boolean;
+	/** Heavy storm clouds overhead in dark, cloudy weather (needs `sky`). Default on. */
+	stormClouds: boolean;
 	/** Where the weather is sampled and drawn around. Default: the camera. */
 	focus?: () => Vector3;
 	/** Instances that do not stop rain (besides player characters and invisible parts). */
@@ -72,6 +92,28 @@ const DEFAULT_SOUNDS = {
 	],
 };
 
+// The package's leaf pictures (art/leaves, made from ComfyUI photos by tools/leaf_textures.py), uploaded as
+// images by ShaderCloud. Sizes are relative: maple largest, birch smallest.
+const DEFAULT_LEAVES: LeafImage[] = [
+	{ texture: "rbxassetid://109288538134452", size: 1.15 }, // maple, red
+	{ texture: "rbxassetid://80805595237760", size: 1.15 }, // maple, orange
+	{ texture: "rbxassetid://117335474473728", size: 1.15 }, // maple, green turning
+	{ texture: "rbxassetid://73078920043599", size: 1 }, // oak, brown
+	{ texture: "rbxassetid://80376924963207", size: 1 }, // oak, green turning
+	{ texture: "rbxassetid://76191320469395", size: 0.9 }, // beech, copper
+	{ texture: "rbxassetid://92750542325621", size: 0.9 }, // linden, lime green
+	{ texture: "rbxassetid://128795998453848", size: 0.8 }, // ginkgo, yellow
+	{ texture: "rbxassetid://90979127004666", size: 0.7 }, // birch, yellow
+];
+
+// Curved cards the pictures are drawn on (art/leaves/meshes, made by tools/leaf_meshes.py), uploaded as models
+// by ShaderCloud; these are the mesh ids inside them.
+const DEFAULT_LEAF_MESHES = [
+	"rbxassetid://124967419192590", // cupped: folded down either side of the midrib
+	"rbxassetid://97859570440573", // curled: rolled along its length, tip up
+	"rbxassetid://138236474548144", // twisted about its midrib
+];
+
 function defaultParticles(): number {
 	const input = game.GetService("UserInputService");
 	return input.TouchEnabled && !input.KeyboardEnabled ? TOUCH_PARTICLE_SCALE : 1;
@@ -84,6 +126,7 @@ export function defaultConfig(): WeatherClientConfig {
 		particles: defaultParticles(),
 		shelter: true,
 		screenDrops: false,
+		stormClouds: true,
 		focus: undefined,
 		ignore: [],
 		sounds: { ...DEFAULT_SOUNDS, volume: 0.5 },
@@ -97,6 +140,11 @@ export function defaultConfig(): WeatherClientConfig {
 			snowColor: Color3.fromRGB(255, 255, 255),
 			snowSize: 0.22,
 			splashColor: Color3.fromRGB(205, 215, 228),
+			// art/clouds/storm-clouds.png (tools/cloud_texture.py), uploaded as an image by ShaderCloud.
+			cloudTexture: "rbxassetid://131975568554853",
+			leaves: DEFAULT_LEAVES,
+			leafSize: 1,
+			leafMeshes: DEFAULT_LEAF_MESHES,
 		},
 	};
 }

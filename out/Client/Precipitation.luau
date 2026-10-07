@@ -12,6 +12,7 @@ local RAIN_CLEARING = _config.RAIN_CLEARING
 local RAIN_HEIGHT = _config.RAIN_HEIGHT
 local RAIN_RATE = _config.RAIN_RATE
 local RAIN_SPEED = _config.RAIN_SPEED
+local RAIN_WIND = _config.RAIN_WIND
 local RATE_FALLOFF = _config.RATE_FALLOFF
 local SEE_THROUGH = _config.SEE_THROUGH
 local SNOW_GRID_RADIUS = _config.SNOW_GRID_RADIUS
@@ -260,7 +261,8 @@ do
 		end
 		local scale = config.particles
 		local windFlat = Vector3.new(params.wind.X, 0, params.wind.Z)
-		local rainVelocity = Vector3.new(params.wind.X, -RAIN_SPEED, params.wind.Z)
+		local rainWind = windFlat * RAIN_WIND
+		local rainVelocity = Vector3.new(rainWind.X, -RAIN_SPEED, rainWind.Z)
 		local snowVelocity = Vector3.new(params.wind.X, -SNOW_SPEED, params.wind.Z)
 		local rainTop = focus.Y + RAIN_HEIGHT
 		local snowTop = focus.Y + SNOW_HEIGHT
@@ -301,7 +303,7 @@ do
 				rainRate = params.rain ^ RAIN_CURVE * RAIN_RATE * scale * falloff
 				local _vector3 = Vector3.new(0, rainTop, 0)
 				local _exp = centre + _vector3
-				local _arg0 = windFlat * life
+				local _arg0 = rainWind * life
 				local top = _exp - _arg0
 				local lifetime = NumberRange.new(life)
 				local speed = NumberRange.new(rainVelocity.Magnitude)

@@ -124,6 +124,8 @@ local INTENSITY_FIELD = {
 	snow = "snow",
 	blizzard = "snow",
 }
+--* Season fields, accepted by the global weather's calls alongside the weather (zones have no season). 
+--* What `Weather.sample()` returns: the weather and the season. 
 local PARAM_KEYS = { "rain", "snow", "clouds", "cloudDensity", "cloudColor", "fog", "fogColor", "darkness", "wind", "lightning" }
 local function copyParams(params)
 	local _object = table.clone(params)

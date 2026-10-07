@@ -150,7 +150,22 @@ const INTENSITY_FIELD: Partial<Record<WeatherPreset, "rain" | "snow" | "fog" | "
 	blizzard: "snow",
 };
 
-export interface WeatherOptions extends Partial<WeatherParams> {
+import type { Season } from "./Season";
+
+/** Season fields, accepted by the global weather's calls alongside the weather (zones have no season). */
+export interface SeasonFields {
+	season?: Season;
+	/** How strongly the season shows, 0-1. */
+	seasonIntensity?: number;
+}
+
+/** What `Weather.sample()` returns: the weather and the season. */
+export interface WeatherSample extends WeatherParams {
+	season: Season;
+	seasonIntensity: number;
+}
+
+export interface WeatherOptions extends Partial<WeatherParams>, SeasonFields {
 	/** Seconds to blend from the current weather into this one. Default 5; 0 switches at once. */
 	transition?: number;
 	/** The preset's main amount, 0-1: rain for `rain()`, snow for `snow()`, fog for `fog()`, clouds for `cloudy()`. */

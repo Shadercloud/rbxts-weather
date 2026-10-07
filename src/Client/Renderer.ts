@@ -1,7 +1,9 @@
 import { SMOOTHING } from "../config";
 import { WeatherParams } from "../Params";
-import { clock, evaluateAt, sweepCache } from "../State";
+import { clock, evaluateAt, evaluateSeason, sweepCache } from "../State";
 import { WeatherClientConfig, WeatherClientOptions, defaultConfig, mergeConfig } from "./ClientConfig";
+import { CloudLayer } from "./CloudLayer";
+import { Leaves } from "./Leaves";
 import { Lightning } from "./Lightning";
 import { Precipitation } from "./Precipitation";
 import { ScreenDrops } from "./ScreenDrops";
@@ -20,6 +22,8 @@ let sky: Sky | undefined;
 let precipitation: Precipitation | undefined;
 let audio: WeatherAudio | undefined;
 let screenDrops: ScreenDrops | undefined;
+let leaves: Leaves | undefined;
+let cloudLayer: CloudLayer | undefined;
 let lightning = new Lightning();
 let exposure = 1;
 let lastSweep = 0;
@@ -36,11 +40,21 @@ function step(deltaTime: number) {
 
 	if (config.wind) Workspace.GlobalWind = params.wind;
 
+	const season = evaluateSeason(now);
 	const target = precipitation ? precipitation.update(params, focus, config) : 1;
+	leaves?.update(
+		deltaTime,
+		now,
+		season.season === "autumn" ? season.intensity : 0,
+		params.wind,
+		focus,
+		config.appearance,
+	);
 	exposure += (target - exposure) * math.min(1, deltaTime * SMOOTHING);
 
 	const flash = lightning.update(params.lightning, now, (volume) => audio?.playThunder(volume));
-	sky?.update(params, flash * (0.4 + 0.6 * exposure));
+	const layer = cloudLayer?.update(params, focus, deltaTime, flash) ?? 0;
+	sky?.update(params, flash * (0.4 + 0.6 * exposure), layer);
 	audio?.update(params, exposure);
 	screenDrops?.update(deltaTime, now, params, target, camera);
 
@@ -62,6 +76,8 @@ export function startRenderer() {
 	precipitation = new Precipitation(config.appearance);
 	audio = new WeatherAudio(config.sounds);
 	if (config.screenDrops) screenDrops = new ScreenDrops();
+	leaves = new Leaves();
+	if (config.sky && config.stormClouds) cloudLayer = new CloudLayer(config.appearance.cloudTexture);
 	lightning = new Lightning();
 	RunService.BindToRenderStep(STEP_NAME, Enum.RenderPriority.Camera.Value + 1, step);
 }
@@ -78,6 +94,10 @@ export function stopRenderer() {
 	audio = undefined;
 	screenDrops?.destroy();
 	screenDrops = undefined;
+	leaves?.destroy();
+	leaves = undefined;
+	cloudLayer?.destroy();
+	cloudLayer = undefined;
 	current = undefined;
 	if (baseWind && config.wind) Workspace.GlobalWind = baseWind;
 }
@@ -90,12 +110,21 @@ export function configureRenderer(options: WeatherClientOptions) {
 		sky?.stop();
 		sky = config.sky ? new Sky() : undefined;
 	}
+	const wantClouds = config.sky && config.stormClouds;
+	if (wantClouds !== (cloudLayer !== undefined)) {
+		cloudLayer?.destroy();
+		cloudLayer = wantClouds ? new CloudLayer(config.appearance.cloudTexture) : undefined;
+	} else if (options.appearance?.cloudTexture !== undefined) {
+		cloudLayer?.setTexture(config.appearance.cloudTexture);
+	}
 	if (previous.screenDrops !== config.screenDrops) {
 		screenDrops?.destroy();
 		screenDrops = config.screenDrops ? new ScreenDrops() : undefined;
 	}
 	if (previous.wind && !config.wind && baseWind) Workspace.GlobalWind = baseWind;
-	if (options.appearance) precipitation?.setAppearance(config.appearance);
+	if (options.appearance) {
+		precipitation?.setAppearance(config.appearance);
+	}
 	if (options.sounds) {
 		audio?.destroy();
 		audio = new WeatherAudio(config.sounds);

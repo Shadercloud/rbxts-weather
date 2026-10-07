@@ -4,10 +4,13 @@ local SMOOTHING = TS.import(script, script.Parent.Parent, "config").SMOOTHING
 local _State = TS.import(script, script.Parent.Parent, "State")
 local clock = _State.clock
 local evaluateAt = _State.evaluateAt
+local evaluateSeason = _State.evaluateSeason
 local sweepCache = _State.sweepCache
 local _ClientConfig = TS.import(script, script.Parent, "ClientConfig")
 local defaultConfig = _ClientConfig.defaultConfig
 local mergeConfig = _ClientConfig.mergeConfig
+local CloudLayer = TS.import(script, script.Parent, "CloudLayer").CloudLayer
+local Leaves = TS.import(script, script.Parent, "Leaves").Leaves
 local Lightning = TS.import(script, script.Parent, "Lightning").Lightning
 local Precipitation = TS.import(script, script.Parent, "Precipitation").Precipitation
 local ScreenDrops = TS.import(script, script.Parent, "ScreenDrops").ScreenDrops
@@ -23,6 +26,8 @@ local sky
 local precipitation
 local audio
 local screenDrops
+local leaves
+local cloudLayer
 local lightning = Lightning.new()
 local exposure = 1
 local lastSweep = 0
@@ -40,26 +45,40 @@ local function step(deltaTime)
 	if config.wind then
 		Workspace.GlobalWind = params.wind
 	end
+	local season = evaluateSeason(now)
 	local target = if precipitation then precipitation:update(params, focus, config) else 1
+	local _result = leaves
+	if _result ~= nil then
+		_result:update(deltaTime, now, if season.season == "autumn" then season.intensity else 0, params.wind, focus, config.appearance)
+	end
 	exposure += (target - exposure) * math.min(1, deltaTime * SMOOTHING)
 	local flash = lightning:update(params.lightning, now, function(volume)
-		local _result = audio
-		if _result ~= nil then
-			_result = _result:playThunder(volume)
+		local _result_1 = audio
+		if _result_1 ~= nil then
+			_result_1 = _result_1:playThunder(volume)
 		end
-		return _result
+		return _result_1
 	end)
-	local _result = sky
-	if _result ~= nil then
-		_result:update(params, flash * (0.4 + 0.6 * exposure))
-	end
-	local _result_1 = audio
+	local _result_1 = cloudLayer
 	if _result_1 ~= nil then
-		_result_1:update(params, exposure)
+		_result_1 = _result_1:update(params, focus, deltaTime, flash)
 	end
-	local _result_2 = screenDrops
+	local _condition = _result_1
+	if _condition == nil then
+		_condition = 0
+	end
+	local layer = _condition
+	local _result_2 = sky
 	if _result_2 ~= nil then
-		_result_2:update(deltaTime, now, params, target, camera)
+		_result_2:update(params, flash * (0.4 + 0.6 * exposure), layer)
+	end
+	local _result_3 = audio
+	if _result_3 ~= nil then
+		_result_3:update(params, exposure)
+	end
+	local _result_4 = screenDrops
+	if _result_4 ~= nil then
+		_result_4:update(deltaTime, now, params, target, camera)
 	end
 	if now - lastSweep > SWEEP_SECONDS then
 		lastSweep = now
@@ -82,6 +101,10 @@ local function startRenderer()
 	audio = WeatherAudio.new(config.sounds)
 	if config.screenDrops then
 		screenDrops = ScreenDrops.new()
+	end
+	leaves = Leaves.new()
+	if config.sky and config.stormClouds then
+		cloudLayer = CloudLayer.new(config.appearance.cloudTexture)
 	end
 	lightning = Lightning.new()
 	RunService:BindToRenderStep(STEP_NAME, Enum.RenderPriority.Camera.Value + 1, step)
@@ -112,6 +135,16 @@ local function stopRenderer()
 		_result_3:destroy()
 	end
 	screenDrops = nil
+	local _result_4 = leaves
+	if _result_4 ~= nil then
+		_result_4:destroy()
+	end
+	leaves = nil
+	local _result_5 = cloudLayer
+	if _result_5 ~= nil then
+		_result_5:destroy()
+	end
+	cloudLayer = nil
 	current = nil
 	if baseWind and config.wind then
 		Workspace.GlobalWind = baseWind
@@ -129,6 +162,25 @@ local function configureRenderer(options)
 			_result:stop()
 		end
 		sky = if config.sky then Sky.new() else nil
+	end
+	local wantClouds = config.sky and config.stormClouds
+	if wantClouds ~= (cloudLayer ~= nil) then
+		local _result = cloudLayer
+		if _result ~= nil then
+			_result:destroy()
+		end
+		cloudLayer = if wantClouds then CloudLayer.new(config.appearance.cloudTexture) else nil
+	else
+		local _result = options.appearance
+		if _result ~= nil then
+			_result = _result.cloudTexture
+		end
+		if _result ~= nil then
+			local _result_1 = cloudLayer
+			if _result_1 ~= nil then
+				_result_1:setTexture(config.appearance.cloudTexture)
+			end
+		end
 	end
 	if previous.screenDrops ~= config.screenDrops then
 		local _result = screenDrops

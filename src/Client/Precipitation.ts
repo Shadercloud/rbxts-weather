@@ -10,6 +10,7 @@ import {
 	RAIN_HEIGHT,
 	RAIN_RATE,
 	RAIN_SPEED,
+	RAIN_WIND,
 	RATE_FALLOFF,
 	SEE_THROUGH,
 	SNOW_GRID_RADIUS,
@@ -268,7 +269,8 @@ export class Precipitation {
 
 		const scale = config.particles;
 		const windFlat = new Vector3(params.wind.X, 0, params.wind.Z);
-		const rainVelocity = new Vector3(params.wind.X, -RAIN_SPEED, params.wind.Z);
+		const rainWind = windFlat.mul(RAIN_WIND);
+		const rainVelocity = new Vector3(rainWind.X, -RAIN_SPEED, rainWind.Z);
 		const snowVelocity = new Vector3(params.wind.X, -SNOW_SPEED, params.wind.Z);
 		const rainTop = focus.Y + RAIN_HEIGHT;
 		const snowTop = focus.Y + SNOW_HEIGHT;
@@ -299,7 +301,7 @@ export class Precipitation {
 			if (raining && rains && !sheltered && rainFall > 0) {
 				const life = rainFall / RAIN_SPEED;
 				rainRate = params.rain ** RAIN_CURVE * RAIN_RATE * scale * falloff;
-				const top = centre.add(new Vector3(0, rainTop, 0)).sub(windFlat.mul(life));
+				const top = centre.add(new Vector3(0, rainTop, 0)).sub(rainWind.mul(life));
 				const lifetime = new NumberRange(life);
 				const speed = new NumberRange(rainVelocity.Magnitude);
 				for (const piece of column.rain) {

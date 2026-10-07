@@ -20,10 +20,22 @@ src/
   Control.ts        set() and the preset shorthands, shared by Weather and zones
   Params.ts         WeatherParams, presets, lerp, resolving a set() call
   Region.ts         zone shapes and their blend weight
+  Season.ts         the season (separate from the weather, global only) and its transitions
   State.ts          attribute storage, the server/client roots, cached reads, evaluateAt
   config.ts         every tuning constant, with why it has its value
-  Client/           drawing: Renderer (per-frame loop), Precipitation, Sky, Lightning, Sound, ScreenDrops, ClientConfig
+  Client/           drawing: Renderer (per-frame loop), Precipitation, Sky, CloudLayer, Lightning, Sound, ScreenDrops, Leaves, ClientConfig
+art/leaves/          the autumn leaf textures (transparent PNG); source/ holds the ComfyUI photos and their prompts
+tools/leaf_textures.py  turns art/leaves/source/*.png into art/leaves/*.png (white keyed out, cropped, 256x256)
+tools/leaf_meshes.py    writes art/leaves/meshes/*.gltf: the curved leaf cards (cupped, curled, twisted), two-sided
+art/clouds/          the storm cloud texture (source/ holds the ComfyUI photo and prompt)
+tools/cloud_texture.py  makes art/clouds/storm-clouds.png tileable, with thin patches see-through
 ```
+
+The leaf textures are uploaded to Roblox as images (by ShaderCloud); their image ids (not the decal ids) are
+`DEFAULT_LEAVES` in `src/Client/ClientConfig.ts`. The meshes are uploaded as models; the mesh ids inside them are `DEFAULT_LEAF_MESHES`.
+Each leaf is a Part with a SpecialMesh (mesh id + texture id), so no EditableMesh or EditableImage is used.
+A leaf part must never be fully opaque: an opaque part draws the texture's transparent background black. A new leaf: generate it on white, run the tool, upload the PNG,
+read the image id inside the decal (`game:GetObjects("rbxassetid://<decal id>")[1].Texture` in Studio), add it.
 
 The default sound ids live in `DEFAULT_SOUNDS` in `src/Client/ClientConfig.ts`: recordings from Roblox's public library (Pro Sound Effects; the wind from DistroKid's official account), which any experience may play. Don't use sounds from sites whose licence forbids redistributing the files (ZapSplat, for one): a default id is a public file anyone can take.
 
@@ -63,3 +75,5 @@ The package is never run on its own.
 - Tuning numbers go in `config.ts` with a comment saying what they do; nothing magic inline.
 - The README is the user documentation; update it in the same change as any public API or behaviour change.
 - Published as `@rbxts/weather` by ShaderCloud (GitHub org `Shadercloud`), ISC licence.
+
+The storm cloud layer (`Client/CloudLayer.ts`) is Textures on huge parts overhead. Two things that hid it in testing: a part at Transparency 1 does not draw its Texture (use 0.99), and dense Atmosphere fades anything 100+ studs off into the sky (so the fog is capped under the layer, see `CLOUD_LAYER_FOG_*`). The Studio MCP's screen capture with a camera position does not show these parts; drive the game camera instead.

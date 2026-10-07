@@ -12,7 +12,7 @@ Weather.zone(marshPart).fog();
 - **Server-driven, no remotes.** Set the weather on the server and every client follows. A player who joins mid-transition picks it up where it is. Lightning flashes at the same moment for everyone.
 - **Local weather.** Zones give a region weather of its own (fog in the marsh, snow on the peak), fading into the surrounding weather at the edge.
 - **Shelter.** Rain stops on roofs instead of falling through them, nothing falls in caves, and sounds are muffled indoors.
-- **No assets to upload, no dependencies.** Particles use textures that ship with every Roblox client; the default sounds come from Roblox's own audio library.
+- **No assets to upload, no dependencies.** Rain and snow use textures that ship with every Roblox client, the default sounds come from Roblox's public audio library, and the autumn leaves are the package's own images, already on Roblox.
 
 ## Install
 
@@ -88,6 +88,24 @@ Weather.set({ fog: 0.6 }); // everything else stays
 
 `Weather.get()` is the weather right now (partway through a transition), `Weather.getTarget()` where it is heading. `PRESETS` holds the presets' values and `lerpParams` blends two weathers.
 
+## Seasons
+
+The season is separate from the weather: picking a preset keeps it, and zones do not have one.
+
+```ts
+Weather.setSeason("autumn", { intensity: 0.7, transition: 30 });
+Weather.rain({ season: "autumn" }); // also accepted alongside any weather call
+Weather.set({ season: "winter", seasonIntensity: 0.5 });
+Weather.getSeason(); // { season: "autumn", intensity: 0.7 }
+```
+
+| Season                       | Drawn                                                                                                                                                                                |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `autumn`                     | Leaves blow through the view near the ground, tumbling with the wind, then settle and fade. Each starts out of sight and blows in. More in a strong wind; `intensity` sets how many. |
+| `spring`, `summer`, `winter` | Nothing yet: available to read for gameplay.                                                                                                                                         |
+
+`seasonIntensity` (0-1, default 1) is how strongly the season shows. Changing season fades the old one out, then the new one in. The default is summer. Like the weather, it is set on the server for everyone, or on a client for that player (`reset()` drops it too), and `Weather.sample()` includes `season` and `seasonIntensity`.
+
 ## Zones
 
 A zone gives a region its own weather. Inside it, its weather replaces the global one; outside, it fades out over `blend` studs.
@@ -128,6 +146,7 @@ On a client, `Weather.sample()` with no position is what is being drawn at the c
 - **Sky.** Fog is laid over the game's own `Atmosphere` (or one the package adds), clouds are set on `Terrain.Clouds` (added if missing), and a `ColorCorrectionEffect` darkens the scene. `Lighting.Brightness` and `ClockTime` are left alone, so a day/night cycle keeps working.
 - **Wind** sets `Workspace.GlobalWind`, which sways terrain grass and moves clouds.
 - **Screen drops** (opt in with `screenDrops: true`): water lands on the lens while the camera is out in the rain, most when looking up or into the wind, none under a roof. The drops are small glass balls just in front of the camera, so they refract the scene behind them, blurred out of focus by a `DepthOfFieldEffect` that only reaches the first stud. Some run down the screen; all fade. The blur is only enabled while drops are showing. Refraction needs a graphics quality that renders glass; on low settings the drops are plain translucent blobs.
+- **Storm clouds**: Roblox's own clouds turn into a flat sheet when the sky is fully covered, so dark, cloudy weather adds two drifting layers of real storm-cloud texture overhead (the lower one faster, for depth). They fade in with the weather: faint when overcast, solid in rain, a heavy sky in a storm, lit from within by lightning. Under them the fog is kept thin enough to see them. Turn off with `stormClouds: false`; `appearance.cloudTexture` swaps the texture.
 - **Lightning** flashes the colour grade; thunder follows a moment later if you gave it a sound.
 
 `Weather.stop()` puts everything back as it was.
@@ -141,6 +160,7 @@ Weather.configure({
 	particles: 1, // rate multiplier (default 0.5 on touch devices)
 	shelter: true, // stop rain at roofs, keep caves dry
 	screenDrops: false, // water drops on the screen in the rain
+	stormClouds: true, // storm cloud layers overhead in dark weather (needs sky)
 	focus: () => character.GetPivot().Position, // where weather is drawn around (default: camera)
 	ignore: [workspace.Effects], // more instances that do not stop rain
 	sounds: {
@@ -159,6 +179,10 @@ Weather.configure({
 		snowColor: Color3.fromRGB(255, 255, 255),
 		snowSize: 0.22,
 		splashColor: Color3.fromRGB(205, 215, 228),
+		leaves: [{ texture: "rbxassetid://...", size: 1, tint: Color3.fromRGB(255, 230, 200) }], // replaces the default leaves
+		cloudTexture: "rbxassetid://...", // the storm cloud layers: tileable, seen from below
+		leafSize: 1, // studs, before each picture's own size
+		leafMeshes: ["rbxassetid://..."], // curved cards the pictures are drawn on, one picked per leaf
 	},
 });
 ```
