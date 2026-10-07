@@ -1,0 +1,57 @@
+{
+	"name": "@rbxts/weather",
+	"version": "0.1.0",
+	"description": "Rain, snow, fog and storms for roblox-ts: one call to change the weather, zones for local weather, shelter under roofs",
+	"main": "out/init.luau",
+	"scripts": {
+		"build": "rbxtsc",
+		"watch": "rbxtsc -w",
+		"prepublishOnly": "npm run build",
+		"lint": "eslint src/",
+		"typecheck": "tsc --noEmit --skipLibCheck",
+		"format": "prettier --write .",
+		"format:check": "prettier --check ."
+	},
+	"keywords": [
+		"rbxts",
+		"roblox",
+		"weather",
+		"rain",
+		"snow",
+		"fog",
+		"storm",
+		"shadercloud"
+	],
+	"author": "ShaderCloud",
+	"license": "ISC",
+	"type": "commonjs",
+	"types": "out/index.d.ts",
+	"files": [
+		"out",
+		"!**/*.tsbuildinfo"
+	],
+	"publishConfig": {
+		"access": "public"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Shadercloud/rbxts-weather.git"
+	},
+	"bugs": {
+		"url": "https://github.com/Shadercloud/rbxts-weather/issues"
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.39.5",
+		"@rbxts/compiler-types": "^3.0.0-types.0",
+		"@rbxts/types": "^1.0.953",
+		"@typescript-eslint/eslint-plugin": "^8.70.0",
+		"@typescript-eslint/parser": "^8.70.0",
+		"eslint": "^9.39.5",
+		"eslint-config-prettier": "^10.1.8",
+		"eslint-plugin-prettier": "^5.5.6",
+		"eslint-plugin-roblox-ts": "^1.4.1",
+		"prettier": "^3.9.8",
+		"roblox-ts": "^3.0.0",
+		"typescript": "^5.9.3"
+	}
+}
